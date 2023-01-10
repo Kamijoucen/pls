@@ -1,5 +1,5 @@
 {
-  "name": "rescript-project-template",
+  "name": "pls",
   "version": "0.0.1",
   "scripts": {
     "res:build": "rescript",
