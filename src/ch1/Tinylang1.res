@@ -32,6 +32,7 @@ module Nameless = {
 
   type env = list<int>
 
+  // ast eval
   let rec eval = (expr: expr, env: env) => {
     switch expr {
     | Cst(i) => i
@@ -47,15 +48,15 @@ module Nameless = {
 }
 
 type cenv = list<string>
-let index = (cenv, x) => {
-  let rec find = (cenv, idx) => {
+let index = (cenv: cenv, x: string) => {
+  let rec find = (cenv: cenv, curIdx: int) => {
     switch cenv {
     | list{} => assert false
     | list{r, ...rest} =>
       if r == x {
-        0
+        curIdx
       } else {
-        find(rest, idx + 1)
+        find(rest, curIdx + 1)
       }
     }
   }
@@ -68,7 +69,9 @@ let rec comp = (expr: TinyLang1.expr, cenv: cenv): Nameless.expr => {
   | Cst(i) => Cst(i)
   | Add(a, b) => Add(comp(a, cenv), comp(b, cenv))
   | Mul(a, b) => Mul(comp(a, cenv), comp(b, cenv))
-  // 这里就是将变量名绑定到静态索引的位置
+  // 这里就是将变量名绑定到静态索引的位置，需要将字符串的变量名映射到数组下标
+  // 这里的cenv是compile env，也就是编译时的上下文
+  // cenv内容是程序中出现的变量名，索引就是该变量名静态编译后的位置
   | Var(x) => Var(index(cenv, x))
   | Let(x, e1, e2) => Let(comp(e1, cenv), comp(e2, list{x, ...cenv}))
   }
