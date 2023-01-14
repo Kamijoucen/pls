@@ -45,12 +45,16 @@ module Compiler = {
   }
 }
 
-let expr = TinyLang0.Add(Cst(1), Mul(Cst(2), Cst(3)))
 // 1 + 2 * 3
+let expr = TinyLang0.Add(Cst(1), Mul(Cst(2), Cst(3)))
+
+// 遍历ast执行
 let result1 = TinyLang0.eval(expr)
 Js.log(result1)
 
+// 通过栈式虚拟机执行
 let code = Compiler.compile(expr)
-
 let result2 = StackMachine.eval(code, list{})
 Js.log(result2)
+
+assert (result1 == result2)
