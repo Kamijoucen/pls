@@ -77,6 +77,37 @@ let rec comp = (expr: TinyLang1.expr, cenv: cenv): Nameless.expr => {
   }
 }
 
+module StackMachine1 = {
+  type inser = Cst(int) | Add | Mul | Var(int) | Pop | Swap
+  type inserts = list<inser>
+  type operand = int
+  type stack = list<operand>
+
+  let rec eval = (inserts: inserts, stack: stack) => {
+    switch (inserts, stack) {
+    | (list{}, list{rest}) => rest
+    | (list{Cst(i), ...rest}, _) => eval(rest, list{i, ...stack})
+    | (list{Add, ...rest}, list{a, b, ...stk}) => eval(rest, list{a + b, ...stk})
+    | (list{Mul, ...rest}, list{a, b, ...stk}) => eval(rest, list{a * b, ...stk})
+    | (list{Var(i), ...rest}, _) => eval(rest, list{List.nth(stack, i), ...stack})
+    | (list{Pop, ...rest}, list{_, ...stk}) => eval(rest, stk)
+    | (list{Swap, ...rest}, list{a, b, ...stk}) => eval(rest, list{b, a, ...stk})
+    | _ => assert false
+    }
+  }
+}
+
+// nameless -> stackmachine
+module Compiler1 = {
+  let rec compile = (expr: Nameless.expr) => {
+    switch expr {
+    | Cst(i) => StackMachine1.Cst(i)
+
+    | _ => assert false
+    }
+  }
+}
+
 // let(要绑定的名称，需要绑定的值，绑定后执行的代码)
 
 // 绑定后执行的代码
@@ -100,6 +131,14 @@ assert (result1 == 7)
 // ast 版本
 let tiny1exp = TinyLang1.Let("test", Cst(11), Add(Var("test"), Var("test")))
 let namelessexp = comp(tiny1exp, list{})
+
+Js.log(namelessexp)
+// 此时neameless打印的结构
+// {
+//   TAG: 4,
+//   _0: { TAG: 0, _0: 11 },
+//   _1: { TAG: 1, _0: { TAG: 3, _0: 0 }, _1: { TAG: 3, _0: 0 } }
+// }
 
 let result2 = Nameless.eval(namelessexp, list{})
 Js.log(result2)
