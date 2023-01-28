@@ -99,10 +99,9 @@ module StackMachine1 = {
 
 // nameless -> stackmachine
 module Compiler1 = {
-  let rec compile = (expr: Nameless.expr) => {
+  let rec nless2smCompile = (expr: Nameless.expr) => {
     switch expr {
     | Cst(i) => StackMachine1.Cst(i)
-
     | _ => assert false
     }
   }
