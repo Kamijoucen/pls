@@ -99,11 +99,42 @@ module StackMachine1 = {
 
 // nameless -> stackmachine
 module Compiler1 = {
-  let rec nless2smCompile = (expr: Nameless.expr) => {
-    switch expr {
-    | Cst(i) => StackMachine1.Cst(i)
-    | _ => assert false
+  let concatMany = Belt.List.concatMany
+  // 本地变量与临时变量
+  // 本地变量指的是有名字的变量，临时变量指运算的中间结果 （比如 1 + 2 的结果并没有绑定名字）
+  type sv = Slocal | Stmp
+  type senv = list<sv>
+
+  // sevn编译时环境
+  // i nameless中变量的位置
+  let sindex = (senv, i) => {
+    // acc: vm中变量i对应的位置 acc
+    let rec go = (senv, i, acc) => {
+      switch senv {
+      | list{} => raise(Not_found)
+      | list{Slocal, ...rest} =>
+        if i == 0 {
+          acc
+        } else {
+          go(rest, i - 1, acc + 1)
+        }
+      | list{Stmp, ...rest} => go(rest, i, acc + 1)
+      }
     }
+    go(senv, i, 0)
+  }
+
+  let nless2smCompile = (expr: Nameless.expr) => {
+    let rec go = (expr: Nameless.expr, senv: senv) => {
+      switch expr {
+      | Cst(i) => list{StackMachine1.Cst(i)}
+      | Add(e1, e2) => concatMany([go(e1, senv), go(e2, list{Stmp, ...senv}), list{Add}])
+      | Mul(e1, e2) => concatMany([go(e1, senv), go(e2, list{Stmp, ...senv}), list{Mul}])
+      | Let(e1, e2) => concatMany([go(e1, senv), go(e2, list{Slocal, ...senv}), list{Swap, Pop}])
+      | Var(x) => list{Var(sindex(senv, x))}
+      }
+    }
+    go(expr, list{})
   }
 }
 
@@ -141,3 +172,13 @@ Js.log(namelessexp)
 
 let result2 = Nameless.eval(namelessexp, list{})
 Js.log(result2)
+
+Js.log("compile to vm")
+// nameless to vm
+let insertResult = Compiler1.nless2smCompile(namelessexp)
+Js.log(insertResult)
+
+Js.log("vm result")
+
+let vmResult = StackMachine1.eval(insertResult, list{})
+Js.log(vmResult)

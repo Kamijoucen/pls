@@ -119,11 +119,11 @@ module Instr1 = {
   type instr = Cst(int) | Add | Mul | Var(int) | Pop | Swap
 
   // Homework1 : Interpreter
-  let rec eval = (instrs, stk) => {
-    switch (instrs, stk) {
-    | _ => assert false
-    }
-  }
+//   let rec eval = (instrs, stk) => {
+//     switch (instrs, stk) {
+//     | _ => assert false
+//     }
+//   }
 }
 
 // Homework2 : Compile Nameless.expr to Machine Instructions
